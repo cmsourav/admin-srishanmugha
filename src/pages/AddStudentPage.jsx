@@ -72,12 +72,6 @@ const Modal = ({ isOpen, onClose, message }) => {
             onClick={onClose}
           >
             Close
-            {/* <svg className="add_student_modal_button_icon" viewBox="0 0 24 24">
-              <path 
-                fill="currentColor" 
-                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-              />
-            </svg> */}
           </button>
         </div>
       </div>
@@ -177,13 +171,6 @@ const AddStudent = () => {
       setIsModalOpen(true);
       return;
     }
-    const userData = userDoc.data();
-    const userName = userData.fullName || "Unknown";
-    const consultancyName = userData.userType === "Freelance Associate" ? "" : userData.consultancyName || "";
-    const referenceValue = {
-      userName,
-      consultancyName,
-    };
 
     setSubmissionStatus("loading");
 
@@ -196,8 +183,11 @@ const AddStudent = () => {
       : { ...student };
 
     studentData.createdAt = Timestamp.now();
-    studentData.reference = referenceValue
-    studentData.createdBy = user.uid
+    studentData.reference = {
+      userName : "Shanmugha Admin ",
+      consultancyName : ""
+    }
+    studentData.createdBy = "Shanmugha college"
 
     try {
       await setDoc(doc(db, "shanmugha", student.studentId), studentData);

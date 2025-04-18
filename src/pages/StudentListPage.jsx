@@ -31,10 +31,7 @@ const StudentList = () => {
     const fetchStudents = async (user) => {
       try {
         setIsLoading(true);
-        const q = query(
-          collection(db, "shanmugha"),
-          where("createdBy", "==", user.uid)
-        );
+        const q = query(collection(db, "shanmugha")); 
         const snapshot = await getDocs(q);
         const list = snapshot.docs.map((docSnap) => {
           const data = docSnap.data();
