@@ -18,8 +18,9 @@ const Dashboard = () => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [unauthorized, setUnauthorized] = useState(false);
 
-  const studentsPerPage = 4;
+  const studentsPerPage = 5;
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -31,43 +32,48 @@ const Dashboard = () => {
 
   useEffect(() => {
     const auth = getAuth();
-  
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         navigate("/");
         return;
       }
-  
+
+      // Check for authorized email
+      if (user.email !== "kerala.adm@srishanmugha.com") {
+        setUnauthorized(true);
+        setLoading(false);
+        return;
+      }
+
       setUser(user);
-  
+
       try {
-       
         const userSnapshot = await getDocs(
           query(collection(db, "users"), where("uid", "==", user.uid))
         );
-  
+
         if (!userSnapshot.empty) {
           const userData = userSnapshot.docs[0].data();
           setUserName(userData.fullName);
         }
-  
-        
+
         const studentSnapshot = await getDocs(
-          collection(db, "shanmugha") 
+          collection(db, "shanmugha")
         );
-  
+
         const studentList = studentSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-  
+
         // Sort by newest first
         const sortedStudents = studentList.sort((a, b) => {
           const aTime = a.createdAt?.seconds || 0;
           const bTime = b.createdAt?.seconds || 0;
           return bTime - aTime;
         });
-  
+
         setStudents(sortedStudents);
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -76,7 +82,7 @@ const Dashboard = () => {
         setLoading(false);
       }
     });
-  
+
     return () => unsubscribe();
   }, [navigate]);
 
@@ -107,8 +113,24 @@ const Dashboard = () => {
     );
   }
 
-  return (
+  if (unauthorized) {
+    return (
+      <div className="unauthorized-container">
+        <div className="unauthorized-content">
+          <h2>Access Denied</h2>
+          <p>You don't have permission to access this dashboard.</p>
+          <button
+            className="logout-btn center-text"
+            onClick={handleLogout}
+          >
+            Return to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
+  return (
     <div className="dashboard-container">
       {/* Main Content */}
       <main className="main-content">
@@ -212,7 +234,7 @@ const Dashboard = () => {
                   <tbody>
                     {currentStudents.map((s, index) => (
                       <tr key={s.studentId}>
-                        <td>{indexOfFirstStudent + index + 1}</td> {/* Row number */}
+                        <td>{indexOfFirstStudent + index + 1}</td>
                         <td>{s.candidateName}</td>
                         <td>{s.course}</td>
                         <td>
@@ -275,6 +297,7 @@ const Dashboard = () => {
             <p>Please use a larger screen to view the student table.</p>
           </div>
         </section>
+
         {/* Logout Confirmation Modal */}
         {showLogoutConfirm && (
           <div className="logout-modal-overlay">
@@ -299,64 +322,66 @@ const Dashboard = () => {
           </div>
         )}
       </main>
+
+      {/* Student Details Modal */}
       {showDetailsModal && selectedStudent && (
-  <div className="student-modal-overlay">
-    <div className="student-modal">
-      <button 
-        className="close-modal-btn"
-        onClick={() => setShowDetailsModal(false)}
-      >
-        &times;
-      </button>
-      
-      <div className="modal-header">
-        <h3>Student Details</h3>
-        <span className={`status-badge ${selectedStudent.applicationStatus.toLowerCase()}`}>
-          {selectedStudent.applicationStatus}
-        </span>
-      </div>
-      
-      <div className="modal-body">
-        <div className="detail-card">
-          <h4>Basic Information</h4>
-          <div className="detail-row">
-            <span className="detail-label">Name:</span>
-            <span className="detail-value">{selectedStudent.candidateName}</span>
-          </div>
-          <div className="detail-row">
-            <span className="detail-label">Course:</span>
-            <span className="detail-value">{selectedStudent.course}</span>
-          </div>
-          <div className="detail-row">
-            <span className="detail-label">College:</span>
-            <span className="detail-value">{selectedStudent.college || 'N/A'}</span>
+        <div className="student-modal-overlay">
+          <div className="student-modal">
+            <button
+              className="close-modal-btn"
+              onClick={() => setShowDetailsModal(false)}
+            >
+              &times;
+            </button>
+
+            <div className="modal-header">
+              <h3>Student Details</h3>
+              <span className={`status-badge ${selectedStudent.applicationStatus.toLowerCase()}`}>
+                {selectedStudent.applicationStatus}
+              </span>
+            </div>
+
+            <div className="modal-body">
+              <div className="detail-card">
+                <h4>Basic Information</h4>
+                <div className="detail-row">
+                  <span className="detail-label">Name:</span>
+                  <span className="detail-value">{selectedStudent.candidateName}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Course:</span>
+                  <span className="detail-value">{selectedStudent.course}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">College:</span>
+                  <span className="detail-value">{selectedStudent.college || 'N/A'}</span>
+                </div>
+              </div>
+
+              <div className="detail-card">
+                <h4>Contact Information</h4>
+                <div className="detail-row">
+                  <span className="detail-label">Father Name:</span>
+                  <span className="detail-value">{selectedStudent.fatherName || 'N/A'}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Parent Number:</span>
+                  <span className="detail-value">{selectedStudent.parentNumber || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="modal-close-btn"
+                onClick={() => setShowDetailsModal(false)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
-        
-        <div className="detail-card">
-          <h4>Contact Information</h4>
-          <div className="detail-row">
-            <span className="detail-label">Father Name:</span>
-            <span className="detail-value">{selectedStudent.fatherName || 'N/A'}</span>
-          </div>
-          <div className="detail-row">
-            <span className="detail-label">Parent Number:</span>
-            <span className="detail-value">{selectedStudent.parentNumber || 'N/A'}</span>
-          </div>
-        </div>
-      </div>
-      
-      <div className="modal-footer">
-        <button 
-          className="modal-close-btn"
-          onClick={() => setShowDetailsModal(false)}
-        >
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+      )}
 
       {sidebarOpen && (
         <div className="overlay" onClick={toggleSidebar}></div>
