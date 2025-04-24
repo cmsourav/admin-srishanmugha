@@ -10,6 +10,7 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase";
 import "../styles/StudentList.css";
+import Unauthorized from "../components/Unauthorized";
 
 const StudentList = () => {
   // State variables
@@ -26,12 +27,20 @@ const StudentList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const studentsPerPage = 8;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [unauthorized, setUnauthorized] = useState(false);
 
   // Fetch students
   useEffect(() => {
     const fetchStudents = async (user) => {
       try {
         setIsLoading(true);
+
+        if (user.email !== "kerala.adm@srishanmugha.com") {
+          setUnauthorized(true);
+          setIsLoading(false);
+          await signOut(auth);
+          return;
+        }
         const q = query(collection(db, "shanmugha")); 
         const snapshot = await getDocs(q);
         const list = snapshot.docs.map((docSnap) => {
@@ -119,7 +128,11 @@ const StudentList = () => {
     setSelectedStudent({ ...student });
     setShowEditModal(true);
   };
-
+if (unauthorized) {
+    return (
+      <Unauthorized />
+    )
+}
   // Student Card Component
   const StudentCard = ({ student }) => (
     <div className="student-card">
@@ -217,7 +230,7 @@ const StudentList = () => {
         setCourseOptions(selected?.courses || []);
         setLocalStudent(prev => ({
           ...prev,
-          course: "", // Reset course when college changes
+          course: "", 
           [name]: value
         }));
       } else {

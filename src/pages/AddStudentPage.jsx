@@ -3,6 +3,7 @@ import { db, auth } from "../firebase";
 import { doc, getDoc, setDoc, Timestamp, collection, getDocs } from "firebase/firestore";
 import { toast } from "react-toastify";
 import "../styles/AddStudent.css";
+import Unauthorized from "../components/Unauthorized";
 
 const validateStudent = (student, enquiryFields) => {
   const errors = {};
@@ -95,6 +96,7 @@ const AddStudent = () => {
   const [submissionStatus, setSubmissionStatus] = useState("idle");
   const [collegeOptions, setCollegeOptions] = useState([]);
   const [courseOptions, setCourseOptions] = useState([]);
+   const [unauthorized, setUnauthorized] = useState(false);
 
   const enquiryFields = [
     "studentId", "applicationStatus", "candidateName", "fatherName", "candidateNumber",
@@ -172,6 +174,13 @@ const AddStudent = () => {
       return;
     }
 
+        if (user.email !== "kerala.adm@srishanmugha.com") {
+              setUnauthorized(true);
+              setIsLoading(false);
+              await signOut(auth);
+              return;
+            }
+
     setSubmissionStatus("loading");
 
     const isEnquiry = student.applicationStatus === "Enquiry";
@@ -207,7 +216,11 @@ const AddStudent = () => {
       setIsModalOpen(true);
     }
   };
-
+if (unauthorized) {
+    return (
+      <Unauthorized />
+    )
+}
   return (
     <div className="add_student_container">
       <div className="add_student_header">

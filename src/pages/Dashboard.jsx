@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import "../styles/Dashboard.css";
 import { FiUser, FiBook, FiClock, FiChevronLeft, FiChevronRight, FiLogOut } from "react-icons/fi";
+import Unauthorized from "../components/Unauthorized";
 
 const Dashboard = () => {
   const [students, setStudents] = useState([]);
@@ -115,19 +116,8 @@ const Dashboard = () => {
 
   if (unauthorized) {
     return (
-      <div className="unauthorized-container">
-        <div className="unauthorized-content">
-          <h2>Access Denied</h2>
-          <p>You don't have permission to access this dashboard.</p>
-          <button
-            className="logout-btn center-text"
-            onClick={handleLogout}
-          >
-            Return to Login
-          </button>
-        </div>
-      </div>
-    );
+      <Unauthorized />
+    )
   }
 
   return (
