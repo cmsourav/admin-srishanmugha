@@ -1005,3 +1005,112 @@ body {
     max-height: 85vh;
   }
 }
+
+.notification-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-right: 15px;
+  position: relative;
+  color: #333;
+}
+
+.notification-dot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background-color: #4CAF50;
+  border-radius: 50%;
+}
+
+.notification-settings-dropdown {
+  position: absolute;
+  right: 120px;
+  top: 60px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+  width: 200px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
+.notification-status {
+  font-size: 14px;
+}
+
+.enable-btn, .disable-btn {
+  margin-top: 10px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.enable-btn {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.disable-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+/* Add these to your existing Dashboard.css */
+.notification-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-right: 15px;
+  position: relative;
+  color: #333;
+}
+
+.notification-dot {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background-color: #4CAF50;
+  border-radius: 50%;
+}
+
+.notification-settings-dropdown {
+  position: absolute;
+  right: 120px;
+  top: 60px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 15px;
+  width: 200px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
+.notification-status {
+  font-size: 14px;
+}
+
+.enable-btn, .disable-btn {
+  margin-top: 10px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.enable-btn {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.disable-btn {
+  background-color: #f44336;
+  color: white;
+}

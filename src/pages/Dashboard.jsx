@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, onSnapshot } from "firebase/firestore";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import "../styles/Dashboard.css";
-import { FiUser, FiBook, FiClock, FiChevronLeft, FiChevronRight, FiLogOut } from "react-icons/fi";
+import { FiUser, FiBook, FiClock, FiChevronLeft, FiChevronRight, FiLogOut, FiBell } from "react-icons/fi";
 import Unauthorized from "../components/Unauthorized";
 
 const Dashboard = () => {
@@ -20,6 +20,8 @@ const Dashboard = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [unauthorized, setUnauthorized] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState('default');
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
 
   const studentsPerPage = 5;
   const navigate = useNavigate();
@@ -29,6 +31,47 @@ const Dashboard = () => {
     signOut(auth)
       .then(() => navigate("/"))
       .catch((error) => console.error("Logout error:", error));
+  };
+
+  // Check and request notification permission
+  useEffect(() => {
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+  }, []);
+
+  const requestNotificationPermission = () => {
+    Notification.requestPermission().then(permission => {
+      setNotificationPermission(permission);
+      if (permission === 'granted') {
+        registerServiceWorker();
+      }
+    });
+  };
+
+  const registerServiceWorker = () => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(registration => {
+          console.log('Service Worker registered');
+        })
+        .catch(err => {
+          console.log('Service Worker registration failed:', err);
+        });
+    }
+  };
+
+  // Function to show notification
+  const showNotification = (title, options) => {
+    if (notificationPermission === 'granted') {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.showNotification(title, options);
+        });
+      } else {
+        new Notification(title, options);
+      }
+    }
   };
 
   useEffect(() => {
@@ -59,23 +102,42 @@ const Dashboard = () => {
           setUserName(userData.fullName);
         }
 
-        const studentSnapshot = await getDocs(
-          collection(db, "shanmugha")
-        );
+        // Set up real-time listener for students
+        const studentsQuery = collection(db, "shanmugha");
+        const unsubscribeStudents = onSnapshot(studentsQuery, (snapshot) => {
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+              showNotification("New Student Added", {
+                body: `${change.doc.data().candidateName} added to ${change.doc.data().course}`,
+                icon: "/icon.png"
+              });
+            } else if (change.type === "modified") {
+              showNotification("Student Updated", {
+                body: `${change.doc.data().candidateName}'s details were updated`,
+                icon: "/icon.png"
+              });
+            }
+          });
 
-        const studentList = studentSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+          const studentList = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
 
-        // Sort by newest first
-        const sortedStudents = studentList.sort((a, b) => {
-          const aTime = a.createdAt?.seconds || 0;
-          const bTime = b.createdAt?.seconds || 0;
-          return bTime - aTime;
+          // Sort by newest first
+          const sortedStudents = studentList.sort((a, b) => {
+            const aTime = a.createdAt?.seconds || 0;
+            const bTime = b.createdAt?.seconds || 0;
+            return bTime - aTime;
+          });
+
+          setStudents(sortedStudents);
         });
 
-        setStudents(sortedStudents);
+        return () => {
+          unsubscribe();
+          unsubscribeStudents();
+        };
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to load student data.");
@@ -85,7 +147,7 @@ const Dashboard = () => {
     });
 
     return () => unsubscribe();
-  }, [navigate]);
+  }, [navigate, notificationPermission]);
 
   const confirmedCount = students.filter((s) => s.applicationStatus === "Enroll").length;
   const enquiryCount = students.filter((s) => s.applicationStatus === "Enquiry").length;
@@ -115,9 +177,7 @@ const Dashboard = () => {
   }
 
   if (unauthorized) {
-    return (
-      <Unauthorized />
-    )
+    return <Unauthorized />;
   }
 
   return (
@@ -132,6 +192,41 @@ const Dashboard = () => {
             </div>
 
             <div className="profile-section desktop-only">
+              <button
+                className="notification-btn"
+                onClick={() => setShowNotificationSettings(!showNotificationSettings)}
+                title="Notification settings"
+              >
+                <FiBell size={20} />
+                {notificationPermission === 'granted' && <span className="notification-dot"></span>}
+              </button>
+
+              {showNotificationSettings && (
+                <div className="notification-settings-dropdown">
+                  {notificationPermission === 'granted' ? (
+                    <div className="notification-status">
+                      <p>Notifications enabled</p>
+                      <button 
+                        className="disable-btn"
+                        onClick={() => setNotificationPermission('denied')}
+                      >
+                        Disable
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="notification-status">
+                      <p>Notifications are {notificationPermission}</p>
+                      <button 
+                        className="enable-btn"
+                        onClick={requestNotificationPermission}
+                      >
+                        Enable
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <button
                 className="profile-btn"
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
