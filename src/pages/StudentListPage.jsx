@@ -93,12 +93,14 @@ const StudentList = () => {
     return Array.from(courses).sort();
   }, [students]);
 
-  // Filter and pagination logic
+  // Enhanced search functionality - searches both name and ID
   const filteredStudents = useMemo(() => {
     let filtered = students;
     if (searchTerm) {
-      filtered = filtered.filter((s) =>
-        s.candidateName?.toLowerCase().includes(searchTerm.toLowerCase())
+      const searchTermLower = searchTerm.toLowerCase();
+      filtered = filtered.filter((s) => 
+        (s.candidateName?.toLowerCase().includes(searchTermLower) || 
+         s.studentId?.toLowerCase().includes(searchTermLower))
       );
     }
     if (statusFilter) {
@@ -128,11 +130,11 @@ const StudentList = () => {
     setSelectedStudent({ ...student });
     setShowEditModal(true);
   };
-if (unauthorized) {
-    return (
-      <Unauthorized />
-    )
-}
+
+  if (unauthorized) {
+    return <Unauthorized />;
+  }
+
   // Student Card Component
   const StudentCard = ({ student }) => (
     <div className="student-card">
@@ -662,13 +664,15 @@ if (unauthorized) {
           <h1 className="student-management__title">Student Portal</h1>
           <div className="header-controls">
             <div className="search-container">
-              <input
-                type="text"
-                className="search-input"
-                placeholder="Search students..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <div className="search-input-wrapper">
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Name or Student ID..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
             <select
               className="filter-select"
@@ -804,11 +808,12 @@ if (unauthorized) {
       </main>
 
       {showEditModal && 
-      <EditModal 
-      selectedStudent={selectedStudent}
-      setShowEditModal={setShowEditModal}
-      isSaving={isSaving}
-      />}
+        <EditModal 
+          selectedStudent={selectedStudent}
+          setShowEditModal={setShowEditModal}
+          isSaving={isSaving}
+        />
+      }
       {showDetailsModal && <DetailsModal />}
     </div>
   );

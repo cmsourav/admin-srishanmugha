@@ -244,14 +244,14 @@ if (unauthorized) {
         {currentStep === 1 && (
           <div className="add_student_verify_step">
             <div className="add_student_input_group">
-              <label htmlFor="studentId">Student ID</label>
+              <label htmlFor="studentId">Register Number</label>
               <input
                 type="text"
                 id="studentId"
                 name="studentId"
                 value={student.studentId}
                 onChange={handleChange}
-                placeholder="Enter student ID"
+                placeholder="Enter 10th register number"
                 className={formErrors.studentId ? "add_student_error" : ""}
               />
               {formErrors.studentId && <span className="add_student_error_message">{formErrors.studentId}</span>}
